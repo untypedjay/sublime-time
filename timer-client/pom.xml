@@ -10,6 +10,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>timer-client</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>io.untypedjay</groupId>
+      <artifactId>timer</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 
   <properties>
     <maven.compiler.source>11</maven.compiler.source>

@@ -2,17 +2,24 @@ package untypedjay.timer;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.Duration;
 import java.util.List;
 import java.util.Vector;
 
-public class CliClient {
+public class CliClient implements TimerListener {
+  private static List<Timer> timers = new Vector<>();
+
   public static void main(String[] args) {
+    Duration duration = Duration.parse("PT20.345S");
+    timers.add(new Timer("DummyTimer1", duration, 10));
+    timers.add(new Timer("Cool Timer", duration, 23));
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
-    String userCmd = promptFor(in, "");
+    String userInput = promptFor(in, "");
+    String[] commands = userInput.split(" ");
 
-    while (!userCmd.equals("exit")) {
-      switch (userCmd) {
+    while (!commands[0].equals("exit")) {
+      switch (commands[0]) {
         case "ls":
           printTimers();
           break;
@@ -34,7 +41,12 @@ public class CliClient {
           break;
 
         case "help":
-          printHelpPage();
+          if (commands.length >= 2) {
+            printHelpPage(commands[1]);
+          } else {
+            printHelpPage("");
+          }
+
           break;
 
         default:
@@ -42,7 +54,7 @@ public class CliClient {
           break;
       }
 
-      userCmd = promptFor(in, "");
+      commands = promptFor(in, "").split(" ");
     }
   }
 
@@ -58,25 +70,67 @@ public class CliClient {
   }
 
   private static void printTimers() {
-    System.out.println("NAME    INTERVAL    LAPS    STATUS");
-    for (var timer: getAllTimers()) {
-      System.out.println(timer);
+    System.out.println("ID    NAME    INTERVAL    LAPS    RUNNING");
+    for (int i = 0; i < timers.size(); i++) {
+      System.out.println(i + 1 + "    " + timers.get(i).getName() + "    " + formatDuration(timers.get(i).getInterval()) + "   " + timers.get(i).getTotalLaps() + "    " + timers.get(i).isRunning());
     }
   }
 
-  private static List<String> getAllTimers() {
-    var result = new Vector<String>();
-    result.add("DummyTimer1   00:01:22    10    running");
-    result.add("DummyTimer1   00:00:55     3    stopped");
-    return result;
+  private static void printHelpPage(String command) {
+    switch (command) {
+      case "ls":
+        System.out.println("Usage:  ls");
+        System.out.println("List all timers");
+        break;
+      case "mk":
+        System.out.println("Usage:  mk NAME INTERVAL [LAPS]");
+        System.out.println("Create a new timer");
+        System.out.println("LAPS (integer): how often the timer should be executed");
+        break;
+      case "rm":
+        System.out.println("Usage:  rm ID");
+        System.out.println("Remove the timer with the corresponding id");
+        break;
+      case "start":
+        System.out.println("Usage:  start ID");
+        System.out.println("Start the timer with the corresponding id");
+        break;
+      case "stop":
+        System.out.println("Usage:  stop ID");
+        System.out.println("Stop the timer with the corresponding id");
+        break;
+      case "exit":
+        System.out.println("Usage:  exit");
+        System.out.println("Quit the application");
+        break;
+      default:
+        System.out.println("ls          list timers");
+        System.out.println("mk          new timer");
+        System.out.println("rm          remove timer");
+        System.out.println("start       start timer");
+        System.out.println("stop        stop timer");
+        System.out.println("exit        quit application");
+    }
   }
 
-  private static void printHelpPage() {
-    System.out.println("ls          list timers");
-    System.out.println("mk          create new timer");
-    System.out.println("rm          remove timer");
-    System.out.println("start       start timer");
-    System.out.println("stop        stop timer");
-    System.out.println("exit        quit application");
+  public static String formatDuration(Duration duration) {
+    long seconds = duration.getSeconds();
+    long absSeconds = Math.abs(seconds);
+    String positive = String.format(
+      "%d:%02d:%02d",
+      absSeconds / 3600,
+      (absSeconds % 3600) / 60,
+      absSeconds % 60);
+    return seconds < 0 ? "-" + positive : positive;
+  }
+
+  @Override
+  public void lapExpired(TimerEvent e) {
+    System.out.println(e.getTimerName() + ": " + e.getElapsedTime().getSeconds() + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
+  }
+
+  @Override
+  public void timerExpired(TimerEvent e) {
+    System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + e.getElapsedTime().getSeconds() + "s");
   }
 }
