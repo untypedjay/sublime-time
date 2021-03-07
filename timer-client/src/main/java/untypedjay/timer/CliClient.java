@@ -8,14 +8,13 @@ import java.util.Vector;
 
 import static untypedjay.timer.Printer.*;
 
-public class CliClient implements TimerListener {
+public class CliClient {
   private static List<Timer> timers = new Vector<>();
 
   public static void main(String[] args) {
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
-    String userInput = promptFor(in, "");
-    String[] commands = userInput.split(" ");
+    String[] commands = promptFor(in, "").split(" ");
 
     while (!commands[0].equals("exit")) {
       switch (commands[0]) {
@@ -32,15 +31,42 @@ public class CliClient implements TimerListener {
           break;
 
         case "rm":
-          System.out.println("ERROR: not yet implemented");
+          if (commands.length != 2) {
+            printInvalidCommandError(commands);
+          } else {
+            try {
+              int timerId = Integer.parseInt(commands[1]);
+              removeTimer(timerId - 1);
+            } catch (NumberFormatException e) {
+              printInvalidCommandError(commands);
+            }
+          }
           break;
 
         case "start":
-          System.out.println("ERROR: not yet implemented");
+          if (commands.length != 2) {
+            printInvalidCommandError(commands);
+          } else {
+            try {
+              int timerId = Integer.parseInt(commands[1]);
+              startTimer(timerId - 1);
+            } catch (NumberFormatException e) {
+              printInvalidCommandError(commands);
+            }
+          }
           break;
 
         case "stop":
-          System.out.println("ERROR: not yet implemented");
+          if (commands.length != 2) {
+            printInvalidCommandError(commands);
+          } else {
+            try {
+              int timerId = Integer.parseInt(commands[1]);
+              stopTimer(timerId - 1);
+            } catch (NumberFormatException e) {
+              printInvalidCommandError(commands);
+            }
+          }
           break;
 
         case "help":
@@ -61,6 +87,14 @@ public class CliClient implements TimerListener {
     }
   }
 
+  private static void startTimer(int id) {
+    //TODO
+  }
+
+  private static void stopTimer(int id) {
+    //TODO
+  }
+
   private static void createTimer(String[] commandArray) {
     String[] timeStringArray = commandArray[2].split(":");
     int[] timeNumberArray = new int[timeStringArray.length];
@@ -76,11 +110,35 @@ public class CliClient implements TimerListener {
 
     Duration duration = getDuration(timeNumberArray);
     if (commandArray.length == 3 && duration != null) {
-      timers.add(new Timer(commandArray[1], duration, 10));
+      addTimer(new Timer(commandArray[1], duration, 10));
     } else if (duration != null) {
-      timers.add(new Timer(commandArray[1], duration, Integer.parseInt(commandArray[3])));
+      addTimer(new Timer(commandArray[1], duration, Integer.parseInt(commandArray[3])));
     } else {
       printInvalidCommandError(commandArray);
+    }
+  }
+
+  private static void addTimer(Timer timer) {
+    timer.addTimerListener(new TimerListener() {
+      @Override
+      public void lapExpired(TimerEvent e) {
+        System.out.println(e.getTimerName() + ": " + e.getElapsedTime().getSeconds() + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
+      }
+
+      @Override
+      public void timerExpired(TimerEvent e) {
+        System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + e.getElapsedTime().getSeconds() + "s");
+      }
+    });
+
+    timers.add(timer);
+  }
+
+  private static void removeTimer(int id) {
+    if (id < 0 || id >= timers.size()) {
+      System.out.println("ERROR: timer id does not exist");
+    } else {
+      timers.remove(id);
     }
   }
 
@@ -100,15 +158,5 @@ public class CliClient implements TimerListener {
       return null;
     }
     return Duration.parse("PT" + input[0] + "H" + input[1] + "M" + input[2] + "S");
-  }
-
-  @Override
-  public void lapExpired(TimerEvent e) {
-    System.out.println(e.getTimerName() + ": " + e.getElapsedTime().getSeconds() + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
-  }
-
-  @Override
-  public void timerExpired(TimerEvent e) {
-    System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + e.getElapsedTime().getSeconds() + "s");
   }
 }
