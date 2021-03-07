@@ -49,7 +49,7 @@ public class CliClient {
           } else {
             try {
               int timerId = Integer.parseInt(commands[1]);
-              startTimer(timerId - 1);
+              new Thread(timers.get(timerId - 1)).start();
             } catch (NumberFormatException e) {
               printInvalidCommandError(commands);
             }
@@ -87,10 +87,6 @@ public class CliClient {
     }
   }
 
-  private static void startTimer(int id) {
-    //TODO
-  }
-
   private static void stopTimer(int id) {
     //TODO
   }
@@ -122,12 +118,12 @@ public class CliClient {
     timer.addTimerListener(new TimerListener() {
       @Override
       public void lapExpired(TimerEvent e) {
-        System.out.println(e.getTimerName() + ": " + e.getElapsedTime().getSeconds() + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
+        System.out.println(e.getTimerName() + ": " + formatDuration(e.getElapsedTime()) + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
       }
 
       @Override
       public void timerExpired(TimerEvent e) {
-        System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + e.getElapsedTime().getSeconds() + "s");
+        System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + formatDuration(e.getElapsedTime()));
       }
     });
 

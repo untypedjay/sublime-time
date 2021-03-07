@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Timer {
+public class Timer implements Runnable {
   private List<TimerListener> timerListeners = new CopyOnWriteArrayList<TimerListener>();
   private String name;
   private Instant startTime;
@@ -21,6 +21,11 @@ public class Timer {
     this.completedLaps = 0;
     this.isRunning = false;
   }
+
+  public void stop() {
+    isRunning = false;
+  }
+
 
   public void addTimerListener(TimerListener l) {
     timerListeners.add(l);
@@ -68,5 +73,23 @@ public class Timer {
 
   public boolean isRunning() {
     return isRunning;
+  }
+
+  @Override
+  public void run() {
+    isRunning = true;
+    completedLaps = 0;
+    startTime = Instant.now();
+    for (int i = 0; i < totalLaps; i++) {
+      try {
+        Thread.sleep(interval.toMillis());
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      completedLaps++;
+      fireLapExpiryEvent();
+    }
+    fireTimerExpiryEvent();
+    isRunning = false;
   }
 }

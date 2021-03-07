@@ -54,7 +54,7 @@ public class Printer {
     }
   }
 
-  private static String formatDuration(Duration duration) {
+  public static String formatDuration(Duration duration) {
     long seconds = duration.getSeconds();
     long absSeconds = Math.abs(seconds);
     String positive = String.format(
