@@ -6,13 +6,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Vector;
 
+import static untypedjay.timer.Printer.*;
+
 public class CliClient implements TimerListener {
   private static List<Timer> timers = new Vector<>();
 
   public static void main(String[] args) {
-    Duration duration = Duration.parse("PT20.345S");
-    timers.add(new Timer("DummyTimer1", duration, 10));
-    timers.add(new Timer("Cool Timer", duration, 23));
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
     String userInput = promptFor(in, "");
@@ -21,11 +20,15 @@ public class CliClient implements TimerListener {
     while (!commands[0].equals("exit")) {
       switch (commands[0]) {
         case "ls":
-          printTimers();
+          printTimers(timers);
           break;
 
         case "mk":
-          System.out.println("ERROR: not yet implemented");
+          if (commands.length < 3) {
+            printInvalidCommandError(commands);
+          } else {
+            createTimer(commands);
+          }
           break;
 
         case "rm":
@@ -50,7 +53,7 @@ public class CliClient implements TimerListener {
           break;
 
         default:
-          System.out.println("ERROR: invalid command");
+          printInvalidCommandError(commands);
           break;
       }
 
@@ -58,7 +61,30 @@ public class CliClient implements TimerListener {
     }
   }
 
-  static String promptFor(BufferedReader in, String p) {
+  private static void createTimer(String[] commandArray) {
+    String[] timeStringArray = commandArray[2].split(":");
+    int[] timeNumberArray = new int[timeStringArray.length];
+
+    try {
+      for (int i = 0; i < timeStringArray.length; i++) {
+        timeNumberArray[i] = Integer.parseInt(timeStringArray[i]);
+      }
+    } catch (NumberFormatException e) {
+      printInvalidCommandError(commandArray);
+      return;
+    }
+
+    Duration duration = getDuration(timeNumberArray);
+    if (commandArray.length == 3 && duration != null) {
+      timers.add(new Timer(commandArray[1], duration, 10));
+    } else if (duration != null) {
+      timers.add(new Timer(commandArray[1], duration, Integer.parseInt(commandArray[3])));
+    } else {
+      printInvalidCommandError(commandArray);
+    }
+  }
+
+  private static String promptFor(BufferedReader in, String p) {
     System.out.print(p + "> ");
     System.out.flush();
     try {
@@ -69,59 +95,11 @@ public class CliClient implements TimerListener {
     }
   }
 
-  private static void printTimers() {
-    System.out.println("ID    NAME    INTERVAL    LAPS    RUNNING");
-    for (int i = 0; i < timers.size(); i++) {
-      System.out.println(i + 1 + "    " + timers.get(i).getName() + "    " + formatDuration(timers.get(i).getInterval()) + "   " + timers.get(i).getTotalLaps() + "    " + timers.get(i).isRunning());
+  public static Duration getDuration(int[] input) {
+    if (input.length != 3) {
+      return null;
     }
-  }
-
-  private static void printHelpPage(String command) {
-    switch (command) {
-      case "ls":
-        System.out.println("Usage:  ls");
-        System.out.println("List all timers");
-        break;
-      case "mk":
-        System.out.println("Usage:  mk NAME INTERVAL [LAPS]");
-        System.out.println("Create a new timer");
-        System.out.println("LAPS (integer): how often the timer should be executed");
-        break;
-      case "rm":
-        System.out.println("Usage:  rm ID");
-        System.out.println("Remove the timer with the corresponding id");
-        break;
-      case "start":
-        System.out.println("Usage:  start ID");
-        System.out.println("Start the timer with the corresponding id");
-        break;
-      case "stop":
-        System.out.println("Usage:  stop ID");
-        System.out.println("Stop the timer with the corresponding id");
-        break;
-      case "exit":
-        System.out.println("Usage:  exit");
-        System.out.println("Quit the application");
-        break;
-      default:
-        System.out.println("ls          list timers");
-        System.out.println("mk          new timer");
-        System.out.println("rm          remove timer");
-        System.out.println("start       start timer");
-        System.out.println("stop        stop timer");
-        System.out.println("exit        quit application");
-    }
-  }
-
-  public static String formatDuration(Duration duration) {
-    long seconds = duration.getSeconds();
-    long absSeconds = Math.abs(seconds);
-    String positive = String.format(
-      "%d:%02d:%02d",
-      absSeconds / 3600,
-      (absSeconds % 3600) / 60,
-      absSeconds % 60);
-    return seconds < 0 ? "-" + positive : positive;
+    return Duration.parse("PT" + input[0] + "H" + input[1] + "M" + input[2] + "S");
   }
 
   @Override
