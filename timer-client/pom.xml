@@ -19,8 +19,24 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-  </properties>
+  <build>
+    <plugins>
+      <!-- run with: mvn exec:java -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>untypedjay.timer.client.CliClient</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

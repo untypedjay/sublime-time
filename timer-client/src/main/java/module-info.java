@@ -1,0 +1,3 @@
+module timerclient {
+  requires timer;
+}

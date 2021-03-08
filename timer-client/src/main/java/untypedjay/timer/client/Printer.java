@@ -1,4 +1,5 @@
-package untypedjay.timer;
+package untypedjay.timer.client;
+import untypedjay.timer.*;
 
 import java.time.Duration;
 import java.util.List;

@@ -1,12 +1,16 @@
 package untypedjay.timer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Timer implements Runnable {
-  private List<TimerListener> timerListeners = new CopyOnWriteArrayList<TimerListener>();
+  private static Logger logger = LoggerFactory.getLogger(Timer.class);
+  private List<TimerListener> timerListeners = new CopyOnWriteArrayList<>();
   private String name;
   private Instant startTime;
   private Duration interval;
@@ -22,16 +26,26 @@ public class Timer implements Runnable {
     this.isRunning = false;
   }
 
+  public void start() {
+    if (!isRunning) {
+      new Thread(this).start();
+      logger.debug(name + ": started");
+    }
+  }
+
   public void stop() {
     isRunning = false;
+    logger.debug(name + ": stopped");
   }
 
   public void addTimerListener(TimerListener l) {
     timerListeners.add(l);
+    logger.debug(name + ": listener added");
   }
 
   public void removeTimerListener(TimerListener l) {
     timerListeners.remove(l);
+    logger.debug(name + ": listener removed");
   }
 
   private void fireLapExpiryEvent() {
@@ -39,6 +53,7 @@ public class Timer implements Runnable {
     for (TimerListener listener : timerListeners) {
       listener.lapExpired(event);
     }
+    logger.debug(name + ": lap expiry event fired");
   }
 
   private void fireTimerExpiryEvent() {
@@ -46,14 +61,23 @@ public class Timer implements Runnable {
     for (TimerListener listener : timerListeners) {
       listener.timerExpired(event);
     }
+    logger.debug(name + ": timer expiry event fired");
   }
 
   public List<TimerListener> getTimerListeners() {
     return timerListeners;
   }
 
+  public void setTimerListeners(List<TimerListener> timerListeners) {
+    this.timerListeners = timerListeners;
+  }
+
   public String getName() {
     return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public Instant getStartTime() {
@@ -64,8 +88,16 @@ public class Timer implements Runnable {
     return interval;
   }
 
+  public void setInterval(Duration interval) {
+    this.interval = interval;
+  }
+
   public int getTotalLaps() {
     return totalLaps;
+  }
+
+  public void setTotalLaps(int totalLaps) {
+    this.totalLaps = totalLaps;
   }
 
   public int getCompletedLaps() {

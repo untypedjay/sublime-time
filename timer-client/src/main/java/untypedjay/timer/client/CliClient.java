@@ -1,13 +1,11 @@
-package untypedjay.timer;
+package untypedjay.timer.client;
+import untypedjay.timer.*;
 
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.List;
 import java.util.Vector;
-
-import static untypedjay.timer.Printer.*;
 
 public class CliClient {
   private static List<Timer> timers = new Vector<>();
@@ -20,12 +18,12 @@ public class CliClient {
     while (!commands[0].equals("exit")) {
       switch (commands[0]) {
         case "ls":
-          printTimers(timers);
+          Printer.printTimers(timers);
           break;
 
         case "mk":
           if (commands.length < 3) {
-            printInvalidCommandError(commands);
+            Printer.printInvalidCommandError(commands);
           } else {
             createTimer(commands);
           }
@@ -33,54 +31,55 @@ public class CliClient {
 
         case "rm":
           if (commands.length != 2) {
-            printInvalidCommandError(commands);
+            Printer.printInvalidCommandError(commands);
           } else {
             try {
               int timerId = Integer.parseInt(commands[1]);
               removeTimer(timerId - 1);
             } catch (NumberFormatException e) {
-              printInvalidCommandError(commands);
+              Printer.printInvalidCommandError(commands);
             }
           }
           break;
 
         case "start":
           if (commands.length != 2) {
-            printInvalidCommandError(commands);
+            Printer.printInvalidCommandError(commands);
           } else {
             try {
               int timerId = Integer.parseInt(commands[1]);
-              new Thread(timers.get(timerId - 1)).start();
+              timers.get(timerId - 1).start();
+              //new Thread(timers.get(timerId - 1)).start();
             } catch (NumberFormatException e) {
-              printInvalidCommandError(commands);
+              Printer.printInvalidCommandError(commands);
             }
           }
           break;
 
         case "stop":
           if (commands.length != 2) {
-            printInvalidCommandError(commands);
+            Printer.printInvalidCommandError(commands);
           } else {
             try {
               int timerId = Integer.parseInt(commands[1]);
               timers.get(timerId - 1).stop();
             } catch (NumberFormatException e) {
-              printInvalidCommandError(commands);
+              Printer.printInvalidCommandError(commands);
             }
           }
           break;
 
         case "help":
           if (commands.length >= 2) {
-            printHelpPage(commands[1]);
+            Printer.printHelpPage(commands[1]);
           } else {
-            printHelpPage("");
+            Printer.printHelpPage("");
           }
 
           break;
 
         default:
-          printInvalidCommandError(commands);
+          Printer.printInvalidCommandError(commands);
           break;
       }
 
@@ -97,7 +96,7 @@ public class CliClient {
         timeNumberArray[i] = Integer.parseInt(timeStringArray[i]);
       }
     } catch (NumberFormatException e) {
-      printInvalidCommandError(commandArray);
+      Printer.printInvalidCommandError(commandArray);
       return;
     }
 
@@ -107,7 +106,7 @@ public class CliClient {
     } else if (duration != null) {
       addTimer(new Timer(commandArray[1], duration, Integer.parseInt(commandArray[3])));
     } else {
-      printInvalidCommandError(commandArray);
+      Printer.printInvalidCommandError(commandArray);
     }
   }
 
@@ -116,16 +115,15 @@ public class CliClient {
       @Override
       public void lapExpired(TimerEvent e) {
         System.out.println();
-        Toolkit.getDefaultToolkit().beep();
-        System.out.println(e.getTimerName() + ": " + formatDuration(e.getElapsedTime()) + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
+        System.out.println("\007");
+        System.out.println(e.getTimerName() + ": " + Printer.formatDuration(e.getElapsedTime()) + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
         System.out.print("> ");
       }
 
       @Override
       public void timerExpired(TimerEvent e) {
         System.out.println();
-        System.out.println("\007");
-        System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + formatDuration(e.getElapsedTime()));
+        System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + Printer.formatDuration(e.getElapsedTime()));
         System.out.print("> ");
       }
     });
