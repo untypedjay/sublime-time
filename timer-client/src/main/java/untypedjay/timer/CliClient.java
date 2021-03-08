@@ -1,5 +1,6 @@
 package untypedjay.timer;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
@@ -62,7 +63,7 @@ public class CliClient {
           } else {
             try {
               int timerId = Integer.parseInt(commands[1]);
-              stopTimer(timerId - 1);
+              timers.get(timerId - 1).stop();
             } catch (NumberFormatException e) {
               printInvalidCommandError(commands);
             }
@@ -85,10 +86,6 @@ public class CliClient {
 
       commands = promptFor(in, "").split(" ");
     }
-  }
-
-  private static void stopTimer(int id) {
-    //TODO
   }
 
   private static void createTimer(String[] commandArray) {
@@ -118,12 +115,18 @@ public class CliClient {
     timer.addTimerListener(new TimerListener() {
       @Override
       public void lapExpired(TimerEvent e) {
+        System.out.println();
+        Toolkit.getDefaultToolkit().beep();
         System.out.println(e.getTimerName() + ": " + formatDuration(e.getElapsedTime()) + " (" + e.getCompletedLaps() + "/" + e.getTotalLaps() + " laps)");
+        System.out.print("> ");
       }
 
       @Override
       public void timerExpired(TimerEvent e) {
+        System.out.println();
+        System.out.println("\007");
         System.out.println(e.getTimerName() + ": finished " + e.getTotalLaps() + " laps in " + formatDuration(e.getElapsedTime()));
+        System.out.print("> ");
       }
     });
 

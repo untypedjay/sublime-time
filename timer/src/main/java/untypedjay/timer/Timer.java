@@ -26,13 +26,14 @@ public class Timer implements Runnable {
     isRunning = false;
   }
 
-
   public void addTimerListener(TimerListener l) {
     timerListeners.add(l);
   }
+
   public void removeTimerListener(TimerListener l) {
     timerListeners.remove(l);
   }
+
   private void fireLapExpiryEvent() {
     TimerEvent event = new TimerEvent(this);
     for (TimerListener listener : timerListeners) {
@@ -81,13 +82,17 @@ public class Timer implements Runnable {
     completedLaps = 0;
     startTime = Instant.now();
     for (int i = 0; i < totalLaps; i++) {
-      try {
-        Thread.sleep(interval.toMillis());
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      completedLaps++;
-      fireLapExpiryEvent();
+        try {
+          for (int j = 0; j < interval.toSeconds(); j++) {
+            Thread.sleep(1000);
+            if (!isRunning) return;
+          }
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+
+        completedLaps++;
+        fireLapExpiryEvent();
     }
     fireTimerExpiryEvent();
     isRunning = false;
